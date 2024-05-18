@@ -14,6 +14,11 @@ from .serializers import UserSerializer, UserLoginSerializer
 from django.contrib.auth.models import User
 from rest_framework import generics, status, mixins
 from rest_framework.response import Response
+from django.contrib.auth import login
+
+from django.contrib.auth.models import User
+
+
 # Create your views here.
 
 # post a job
@@ -262,11 +267,7 @@ class GetCreateRecruiters(generics.GenericAPIView, mixins.CreateModelMixin, mixi
 
 
 
-from django.contrib.auth import login
-from .serializers import UserSerializer, UserLoginSerializer
-from django.contrib.auth.models import User
-from rest_framework import generics, status
-from rest_framework.response import Response
+
 
 class UserRegistrationAPIView(generics.CreateAPIView):
     serializer_class = UserSerializer
