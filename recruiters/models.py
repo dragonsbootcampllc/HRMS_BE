@@ -6,26 +6,24 @@ from applicants.models import Applicant
 User = settings.AUTH_USER_MODEL
 
 
+
 class UserProfile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    user_role_id = models.IntegerField()
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user_address = models.CharField(max_length=255)
+    user_role = models.CharField(max_length=100)
     user_dob = models.DateField()
-    user_address = models.TextField()
-    user_role = models.CharField(max_length=50)
 
-# Automatically handle signals to create or update user profiles
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+    def __str__(self):
+        return self.user.username
 
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
-    if created:
-        UserProfile.objects.create(user=instance)
-    else:
-        instance.userprofile.save()
 
 class Recruiter(models.Model):
     user = models.OneToOneField(User, related_name='recruiter', on_delete=models.CASCADE)
+    username = models.CharField(max_length=100)
+    user_email = models.EmailField()
+    user_address = models.CharField(max_length=255)
+    user_role = models.CharField(max_length=100)
+    user_dob = models.DateField()
     date_of_birth = models.DateField()
 
 
