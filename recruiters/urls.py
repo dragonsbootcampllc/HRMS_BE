@@ -16,6 +16,13 @@ urlpatterns = [
     
     path('category',view=views.GetCreateCategory.as_view()),                               # show all categories & create a new category
     path('question',view=views.ShowQuestions.as_view()),                                   # show all questions
+
+    path('register/', view=views.RegisterView.as_view()),
+    path('login/', view=views.LoginView.as_view()),
+    path('profiles/', view=views.UserProfileListView.as_view()),
+    path('profiles/<int:pk>/', view=views.UserProfileDetailView.as_view()),
+
+
     # path('user/<int:pk>',view=views.GetUesr.as_view()),
     # path('user/',view=views.GetUsers.as_view()),
     # path('createApplication/',view=views.CreateApplication.as_view()),

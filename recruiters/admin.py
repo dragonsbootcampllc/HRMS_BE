@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from recruiters.models import Recruiter, Question, Category, JobPost, Applied \
-        ,Application, Interview,Answer
+        ,Application, Interview,Answer, UserProfile
 
 # Register your models here.
 
@@ -13,3 +13,4 @@ admin.site.register(Applied)
 admin.site.register(Application)
 admin.site.register(Interview)
 admin.site.register(Answer)
+admin.site.register(UserProfile)
