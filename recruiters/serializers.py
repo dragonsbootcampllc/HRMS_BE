@@ -14,6 +14,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = ['user_address', 'user_role', 'user_dob']
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['user_address', 'user_role', 'user_dob']
+
 class UserSerializer(serializers.ModelSerializer):
     userprofile = UserProfileSerializer()
 
@@ -37,13 +42,14 @@ class UserSerializer(serializers.ModelSerializer):
         profile.user_dob = profile_data.get('user_dob', profile.user_dob)
         profile.save()
         return user
-
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
 
     def validate(self, data):
-        user = authenticate(**data)
+        username = data.get("username", "")
+        password = data.get("password", "")
+        user = authenticate(username=username, password=password)
         if user and user.is_active:
             return user
         raise serializers.ValidationError("Invalid credentials")
@@ -55,7 +61,7 @@ class UserLoginSerializer(serializers.Serializer):
 # serialize all the modles
 class RecruiterSerializer(serializers.ModelSerializer):
     user = serializers.DictField(write_only=True)
-    
+
     class Meta:
         model = Recruiter
         fields = ['id','user', 'date_of_birth']
@@ -85,7 +91,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Application
-        fields = ['id', 'recruiter', 'questions'] 
+        fields = ['id', 'recruiter', 'questions']
 
 
 class JobPostSerializer(serializers.ModelSerializer):
@@ -94,7 +100,7 @@ class JobPostSerializer(serializers.ModelSerializer):
         model = JobPost
         fields = ['id', 'recruiter', 'category', 'name', 'description', 'candidates_number', 'application', 'active','is_application']
 
-    
+
 class AppliedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Applied

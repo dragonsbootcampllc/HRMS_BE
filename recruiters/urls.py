@@ -1,10 +1,10 @@
-from django.urls import path
+from django.urls import path, include
 from recruiters import views
-
+from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
     path('',view=views.GetCreateRecruiters.as_view()),                            # show all recruiters & create a new recruiter
-    path('job',view=views.GetCreatePostJob.as_view()),                                     # show all jobs & post a job 
+    path('jobs',view=views.GetCreatePostJob.as_view()),                                     # show all jobs & post a job 
     path('job/<int:job_id>/interviews',view=views.GetJobInterviews.as_view()),             # show all jobs & post a job 
     
     path('job/<int:pk>/applicant',view=views.ShowApplicants.as_view()),                    # show all applicants for a job
@@ -20,7 +20,7 @@ urlpatterns = [
 
     path('register/', view=views.UserRegistrationAPIView.as_view()),
     path('login/', view=views.UserLoginAPIView.as_view()),
-
+    path('api/token/', obtain_auth_token, name='token'),
     path('edit-user/<int:pk>/', view=views.EditUserAPIView.as_view()),
     path('delete-user/<int:pk>/', view=views.DeleteUserAPIView.as_view()),
     path('search-user/', view=views.SearchUserAPIView.as_view()),

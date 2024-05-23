@@ -14,19 +14,17 @@ from .serializers import UserSerializer, UserLoginSerializer
 from django.contrib.auth.models import User
 from rest_framework import generics, status, mixins
 from rest_framework.response import Response
-from django.contrib.auth import login
-
-from django.contrib.auth.models import User
-
-
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 
-# post a job
 class GetCreatePostJob(generics.GenericAPIView, mixins.CreateModelMixin, mixins.ListModelMixin):
     serializer_class = serializers.JobPostSerializer
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         # Extract recruiter_id from request data
+        print(request.headers)
         data = request.data.copy()
 
         recruiter_id = data['recruiter']
@@ -40,7 +38,7 @@ class GetCreatePostJob(generics.GenericAPIView, mixins.CreateModelMixin, mixins.
         if data['is_application'] :
             try:
                 if data['application'] is None or data['application'] == []:
-                    raise NotFound("ther is no applications")
+                    raise NotFound("there are no applications")
             except KeyError as e:
                 return Response({"application": ["This field is required."]}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -57,19 +55,25 @@ class GetCreatePostJob(generics.GenericAPIView, mixins.CreateModelMixin, mixins.
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        # Generate token for the recruiter
+        token, created = Token.objects.get_or_create(user=recruiter.user)
+
+        # Add token to the response data
+        response_data = serializer.data
+        response_data['token'] = token.key
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
     def perform_create(self, serializer):
         serializer.save()
 
     def get_queryset(self):
         recruiter = get_object_or_404(Recruiter, pk=self.request.data['recruiter_id'])
-        print(recruiter.id)
         return JobPost.objects.filter(recruiter=recruiter)
 
     def get(self, request):
         return self.list(request)
-
 class GetJobInterviews(generics.GenericAPIView, mixins.ListModelMixin):
     serializer_class = serializers.InterviewSerializer
 
@@ -268,19 +272,29 @@ class GetCreateRecruiters(generics.GenericAPIView, mixins.CreateModelMixin, mixi
 
 
 
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import AllowAny
 
 class UserRegistrationAPIView(generics.CreateAPIView):
     serializer_class = UserSerializer
+    permission_classes = [AllowAny]
 
-class UserLoginAPIView(generics.GenericAPIView):
-    serializer_class = UserLoginSerializer
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        user = User.objects.get(username=response.data['username'])
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key, 'user_id': user.id, 'username': user.username}, status=status.HTTP_201_CREATED)
 
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+
+class UserLoginAPIView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data
-        login(request, user)
-        return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key, 'user_id': user.id, 'username': user.username})
 
 from rest_framework import filters
 class EditUserAPIView(generics.UpdateAPIView):

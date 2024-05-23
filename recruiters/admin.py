@@ -14,3 +14,5 @@ admin.site.register(Application)
 admin.site.register(Interview)
 admin.site.register(Answer)
 admin.site.register(UserProfile)
+
+

@@ -1,3 +1,4 @@
+from contextvars import Token
 from django.shortcuts import get_object_or_404
 
 from rest_framework.response import Response
@@ -15,14 +16,32 @@ from rest_framework import mixins
 from rest_framework import permissions
 
 from django.db import transaction
+from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 
 
 
 # create Applicant 
-class GetCreateApplicant(generics.CreateAPIView,generics.ListAPIView):
+class GetCreateApplicant(generics.CreateAPIView, generics.ListAPIView):
     queryset = Applicant.objects.all()
     serializer_class = Applicant_serializers.ApplicantSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Save the new applicant
+        serializer.save()
+
+        # Generate a token for the applicant
+        applicant = serializer.instance
+        token, created = Token.objects.get_or_create(user=applicant.user)
+
+        # Include the token in the response data
+        response_data = {
+            'applicant_id': applicant.id,
+            'token': token.key,
+            'message': 'Applicant created successfully with token.'
+        }
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 # apply for a posted job
 class ApplyJob(generics.CreateAPIView):
